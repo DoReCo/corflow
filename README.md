@@ -1,4 +1,4 @@
-# Multitool
+# Corflow
 A file conversion/manipulation software for corpus linguistics.
 
 See the [Github's wiki](https://github.com/DoReCo/corflow/wiki) for documentation.
