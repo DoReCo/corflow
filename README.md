@@ -4,7 +4,7 @@ A file conversion/manipulation software for corpus linguistics.
 See the [Github's wiki](https://github.com/DoReCo/corflow/wiki) for documentation.
 
 ## 0. Readme updates
-(François Delafontaine: Lyon, 13.04.2022)
+François Delafontaine: Neuchâtel (Switzerland), 22.08.2022
 
 ## 1. Context
 *Corflow*, originally the 'multitool', has been started around 2015 to anonymize and convert files for the [OFROM](http://www11.unine.ch/) corpus (at Neuchatel, Switzerland). Initially in C++, it was reworked between 2016-9 in the ANR-DFG [SegCor](segcor.cnrs.fr) project (at Orleans, France) and translated in Python. It is now and since 2019 being developped within the ANR-DFG [DoReCo](http://www.doreco.info/) project (at Lyon, France). 
