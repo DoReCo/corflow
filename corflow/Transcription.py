@@ -1,4 +1,4 @@
-"""05/02/2021
+"""23/08/2022
 Imports and exports 
 
 Note:   'str' (string), 'int' (integer), 'float', 'list', 'dict' (dictionary)
@@ -17,7 +17,7 @@ All classes "Corpus > Transcription > Tier > Segment" are children of
 - d_elem                    the structure of those sub-elements
 - metadata                  all information beyond start/end/content
 A Corpus has a list of Transcriptions, a Transcription a list of Tiers, etc.
-Note:   'd_elem' has an element's name as key and a list as value.
+Note:   'd_elem' has an element as key and a list as value.
         In that list the first position is the element's index in 'elem',
         the second position the element's parent (as pointer).
         All positions beyond that are children elements (as pointers).
@@ -26,13 +26,14 @@ Note:   'metadata' is a structure "dict<str:dict<str:list<str>>>", or:
         Where two 'LOCALE' metadata for an Elan file are stored.
         The first key is the file format, with two strings reserved:
         - 'omni' for metadata shared by all file formats and
-        - 'tech' for information used internally by CorFlow
+        - 'tech' for information used internally by Corflow
+        - 'speakers' for information about speakers
+        /!\ 'speakers' has another layer of dict' for each speaker.
 """
  
-import re
+import sys,os,re
 
     #### Support class ####
-    #######################
 class Conteneur:
     """Parent class to be inherited by all main classes."""
     
@@ -1017,5 +1018,61 @@ class Corpus(Conteneur):
         for trans in self:
             for tier in trans:
                 yield self._retDet(tier,det)
+
+    #### Support Functions ####
+def _getFunc():
+    """Returns an import function depending on Python version."""
+    if sys.version_info < (3,4):
+        import pkgutil
+        return pkgutil.find_loader,pkgutil.ImpLoader
+    else:
+        import importlib,importlib.util
+        return importlib.util.find_spec,importlib.import_module
+def _getPack(fromX_pad,fromX_pack):
+    """Imports the module."""
+    if fromX_pack in sys.modules:
+        return sys.modules[fromX_pack]
+    fromX_func1,fromX_func2 = _getFunc()
+    if (("corflow" in sys.modules) and 
+        fromX_func1("."+fromX_pack,package="corflow")):
+        fromX_package = fromX_func2("."+fromX_pack,package="corflow")
+        return getattr(fromX_package,fromX_pack)
+    return None
+    if ((not fromX_pad in sys.path) and (os.path.isdir(fromX_pad) 
+                                     and os.access(fromX_pad,os.R_OK))):
+        sys.path.append(fromX_pad)
+def _getModule(fromX_mod):
+    """"""
+    fromX_home = os.path.abspath(os.path.dirname(__file__))
+    if not os.path.isfile(os.path.join(fromX_home,fromX_mod+".py")):
+        return
+    return _getPack(fromX_home,fromX_mod)
+def fromX(p,d_vals={},**args):
+    """Imports a Transcription according to the file extension.
+    ARGUMENTS:
+    - p         :   (str) a path to a file
+    - d_vals    :   (dict) a dictionary to customize the extensions
+    - args      :   (kwarg) other arguments for the import
+    RETURNS:
+    - a Transcription instance
+    Note: relies on a dictionary dict<str:str> of extensions to modules.
+    Note: imports compatible with Python 2 (pkgutil) and 3 (importlib).
+    Note: only works for modules within the 'corflow' package."""
+    
+    fromX_d_mods = {'.eaf':'fromElan',
+                    '.textgrid':'fromPraat',
+                    '.xml':'fromPangloss'}
+    if d_vals:
+        for fromX_k,fromX_v in d_vals.items():
+            fromX_d_mods[fromX_k] = fromX_v
+        # Get module's name from file extension
+    fromX_dir,fromX_file = os.path.split(p)
+    fromX_fi,fromX_ext = os.path.splitext(fromX_file)
+    fromX_mod = fromX_d_mods.get(fromX_ext.lower())
+    if not fromX_mod:
+        return None
+        # Get module
+    fromX_func = _getModule(fromX_mod)
+    return fromX_func(p,**args) if fromX_func else None
 
 #### End of document
