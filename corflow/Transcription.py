@@ -322,6 +322,8 @@ class Conteneur:
         if spk in self.metadata[div]:       # update if speaker already there
             for k,v in d_vals.items():
                 self.metadata[div][spk][k] = v
+        else:
+            self.metadata[div][spk] = {k:v}
             # Check speaker elements
         if el in d_vals:
             l_elem = d_vals[el]
@@ -885,11 +887,13 @@ class Transcription(Conteneur):
         return l_ind
     
         # set functions
-    def timetable(self):
+    def timetable(self,l_tiers=[]):
         """Returns a list of ordered time boundaries from all Segments."""
             # Set up the lists to parse tiers
         l_time = []
-        for tier in self:
+        if not l_tiers:
+            l_tiers = self.elem
+        for tier in l_tiers:
             typ = tier.meta('type','tech')  # check type
             if typ and (not typ == "time" and not typ == "subtime"):
                 continue
