@@ -197,15 +197,18 @@ class Conteneur:
             struct.d_elem[elem] += l_struct.copy()
         self._fixIndexes(struct,index+1,len(struct.elem))   # indexes
         return self._retDet(struct.elem[index],det)
-    def _rem(self,elem,parent=None):
-        l_children = elem.allChildren(det=True) # remove children
-        for a in range(len(l_children)-1,-1,-1):
-            n,i,child = l_children[a]
-            if child.struct:
-                if isinstance(parent,int):
-                    child.struct._rem(child)
-                elif child.parent() == elem:
-                    child.setParent(parent)
+    def _rem(self,elem,parent=None,rem=False):
+        """Removes an element from 'elem'."""
+        for child in elem.children():
+            if not chid.struct:
+                continue
+            elif rem:
+                for cc in child.allChildren():
+                    if cc.struct:
+                        cc.struct.remove(cc)
+                child.struct.remove(child)
+            else:
+                child.setParent(parent)
         elem.setParent(None)                    # warn parent
         if elem in self.d_elem:                 # remove from 'd_elem'
             self.d_elem.pop(elem)
@@ -319,11 +322,10 @@ class Conteneur:
             d_vals = {'name':spk}
         if not div in self.metadata:        # need speaker division
             self.metadata[div] = {}
-        if spk in self.metadata[div]:       # update if speaker already there
-            for k,v in d_vals.items():
-                self.metadata[div][spk][k] = v
-        else:
-            self.metadata[div][spk] = {k:v}
+        if not spk in self.metadata[div]:   # add speaker
+            self.metadata[div][spk] = {}
+        for k,v in d_vals.items():
+            self.metadata[div][spk][k] = v
             # Check speaker elements
         if el in d_vals:
             l_elem = d_vals[el]
@@ -525,13 +527,12 @@ class Conteneur:
         nel =  self._new(struct,index,name,start,end,content,elem,
                          d_elem,metadata,det)
         return self._retDet(nel,det)
-    def add(self,index=-1,elem=None,parent=None,
-            ch_child=False,struct=None,det=False):
+    def add(self,index=-1,elem=None,parent=None,struct=None,det=False):
         """Adds (copies) a pre-existing object to 'struct.elem'."""
         if not elem:
             return self._retEmpty(det)
         struct = self._fixStruct(struct); index = self._fixIndex(index)
-        nel = self._copy(struct,index,elem,parent,ch_child,det)
+        nel = self._copy(struct,index,elem,parent,False,det)
         return self._retDet(nel,det)
         # set functions
     def move(self,index):
@@ -561,12 +562,27 @@ class Conteneur:
         if index < 0:
             return self._retEmpty(det)
         self._rem(elem,parent) # Remove
+        return return self._retDet(elem,det)
+    def allRemove(self,elem,parent=None,det=False):
+        """Removes an element by object (and its children)."""
+        index = elem.index()    # Get index
+        if index < 0:
+            return self._retEmpty(det)
+        self._rem(elem,rem=True) # Remove
+        return self._retDet(elem,det)
     def pop(self,index,parent=None,det=False):
         """Removes an element by index (loses the structure)."""
         if index < 0 or index >= len(self): # Get name
             return self._retEmpty(det)
         elem = self.elem[index]
         self._rem(elem,parent) # Remove
+        return self._retDet(elem,det)
+    def allPop(self,index,parent=None,det=False):
+        """Removes an element by index (and its children)."""
+        if index < 0 or index >= len(self): # Get name
+            return self._retEmpty(det)
+        elem = self.elem[index]
+        self._rem(elem,rem=True) # Remove
         return self._retDet(elem,det)
     def remName(self,name,parent=None,det=False):
         """Removes an element by name (loses the structure)."""
@@ -575,14 +591,23 @@ class Conteneur:
             return self._retEmpty(det)
         self._rem(elem,parent)   # Remove
         return self._retDet(elem,det)
+    def remAllName(self,name,parent=None,det=False):
+        """Removes an element by name (and its children)."""
+        n,index,elem = self.getName(name,det=True)
+        if index < 0:           # empty
+            return self._retEmpty(det)
+        self._rem(elem,rem=True)   # Remove
+        return self._retDet(elem,det)
         # set functions (for structure)
     def setParent(self,parent,old=True,new=True):
+        """Sets an element's parent."""
         if old and self.parent():                   # Deal with old parent
             self.parent().remChild(self,False,False)
         self.struct.d_elem[self][1] = parent        # Set parent
         if new and parent:                          # Deal with new parent
             parent.addChild(self,False,False)
     def addChild(self,child,old=True,new=True):
+        """Adds a child to an element."""
         if not child:
             return
         if old and child.parent():        # Deal with old parent
@@ -593,6 +618,7 @@ class Conteneur:
         if new and child:                           # Deal with new parent
             child.setParent(self,False,False)
     def remChild(self,child,old=True,new=True):
+        """Removes a child to an element."""
         if (len(self.struct.d_elem[self]) <= 2 or   # Check
             child not in self.struct.d_elem[self][2:]):
             return
@@ -604,6 +630,7 @@ class Conteneur:
                 tmp.pop(a)
         self.struct.d_elem[self] = self.struct.d_elem[self][:2]+tmp
     def clearChildren(self,old=True,new=True):
+        """Removes all children of an element."""
         if len(self.struct.d_elem[self]) <= 2:      # Check
             return
         if old:                                     # Deal with old parent
@@ -648,12 +675,22 @@ class Segment(Conteneur):
         return None
 
         # set functions
-    def setChildTime(self,ch=True):
+    def setChildTime(self,ch=True,stop=[]):
         """Attributes time codes to child segments."""
-        for ctier,l_csegs in self.childDict().items():
-            if ch and l_csegs and l_csegs[0].start >= 0.:
-                continue
-            self._split(l_csegs,self)
+        l_tmp,l_ctiers = [],self.struct.children()
+        d_csegs = self.allChildDict()
+        while l_ctiers:
+            for ctier in l_ctiers:
+                if ctier in stop: # stop part
+                    continue
+                l_csegs = d_csegs.get(ctier,[])
+                if ch and l_csegs and l_csegs[0].start >= 0.: # ch part
+                    continue
+                self._split(l_csegs,self)
+                for child in ctier.children:
+                    if not child in l_tmp:
+                        l_tmp.append(child)
+            l_ctiers = l_tmp.copy(); l_tmp.clear()
     def cleanContent(self,l_elim=[],strip=""):
         """Trying to clean the segment's content as much as possible.
         ARGUMENTS:

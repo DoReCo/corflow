@@ -54,6 +54,8 @@ def _writeFilDesc(ntrans,tab="\t\t"):
                        html.escape(audio)+"\"/>\n")
         txt = txt+(tab+tab+"\t</recording>\n"+tab+tab+"</recordingStmt>\n"+
                    tab+"\t</sourceDesc>\n")
+    else:
+        txt = txt+(tab+"\t<sourceDesc></sourceDesc>\n")
     return txt+(tab+"</fileDesc>\n")
 def _writeProDesc(ntrans,tab="\t\t"):
     d_spk = ntrans.getSpk(); i = 1
