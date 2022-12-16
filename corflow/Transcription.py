@@ -562,7 +562,7 @@ class Conteneur:
         if index < 0:
             return self._retEmpty(det)
         self._rem(elem,parent) # Remove
-        return return self._retDet(elem,det)
+        return self._retDet(elem,det)
     def allRemove(self,elem,parent=None,det=False):
         """Removes an element by object (and its children)."""
         index = elem.index()    # Get index
