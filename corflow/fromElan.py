@@ -9,7 +9,7 @@ Note: Functions starting with '_' are not meant to be called by the user.
 It then calls, one or more times:
     > 'loadEAF()' to load the Elan file
 
-Note: '_checkFiles()' only selects files with '.textgrid' (caps ignored)
+Note: '_checkFiles()' only selects files with '.eaf' (caps ignored)
       extensions.
 Note: Generated tiers have both time codes and parents.
       LINGUISTIC_TYPE_REF is stored as 'type' in 'omni' metadata.
@@ -59,7 +59,7 @@ def _hyperval(el):
     for key,val in el.attrib.items():
         if hyperval:
             hyperval = hyperval+" "
-        hyperval = hyperval+key+"=\""+html.escape(val)+"\""
+        hyperval = hyperval+key+"=\""+html.unescape(val)+"\""
     return hyperval
 
 def _writeMD(d,obj,el):

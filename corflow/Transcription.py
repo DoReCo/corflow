@@ -865,20 +865,20 @@ class Transcription(Conteneur):
         for tier in self:
             for seg in tier:
                 yield self._retDet(seg)
-    def iterTime(self,det=False,settime=False):
+    def iterTime(self,l_tiers=[],det=False):
         """Iterates over all segments in time order.
         Returns a reference (name,index,pointer) if 'det'."""
-        if settime:
-            self.setTime()
+        if not l_tiers:
+            l_tiers = self.elem
             # Set up the lists to parse tiers
         l_ind = []; l_max = []; max = -1.
-        for tier in self:
+        for tier in l_tiers:
             l_ind.append(0); l_max.append((tier,len(tier)))
-            if tier.elem and time < tier.elem[-1].end:
+            if tier.elem and max < tier.elem[-1].end:
                 max = tier.elem[-1].end
         l_time = []; li = len(l_ind)
         if max < 0:
-            raise StopIteration
+            return
             # Parse the tiers
         while True:
             time = max; nseg = None; pos = -1
@@ -889,13 +889,13 @@ class Transcription(Conteneur):
                     if time > seg.start:
                         time = seg.start; nseg = seg; pos = a
                     # Increment past the exhausted segment
-                if pos >= 0:
-                    l_ind[a] = l_ind[a]+1
-                    # Yield the segment
-                if not nseg:
-                    raise StopIteration
-                else:
-                    yield self._retDet(nseg)
+            if pos >= 0:
+                l_ind[pos] = l_ind[pos]+1
+                # Yield the segment
+            if not nseg:
+                return
+            else:
+                yield self._retDet(nseg)
         # navigation
     def co(self):
         return self.struct
@@ -1102,7 +1102,9 @@ def fromX(p,d_vals={},**args):
     
     fromX_d_mods = {'.eaf':'fromElan',
                     '.textgrid':'fromPraat',
-                    '.xml':'fromPangloss'}
+                    '.xml':'fromPangloss',
+                    '.trs':'fromTranscriber',
+                    '.exb':'fromExmaralda'}
     if d_vals:
         for fromX_k,fromX_v in d_vals.items():
             fromX_d_mods[fromX_k] = fromX_v

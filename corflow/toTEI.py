@@ -167,7 +167,7 @@ def _writeBody(f,ntrans,d_timetable,id):
     tab,ttab,i = "\t\t","\t\t\t\t",0
     txt = (tab+"<body>\n"+tab+"\t<div subtype=\"d0\" type=\"Situation\">\n"+
            tab+tab+"<head>\n"+tab+tab+"\t<note type=\"start\">#T0</note>\n"+
-           tab+tab+"\t<note type=\"end\">"+id+"</note>\n"+tab+tab+
+           tab+tab+"\t<note type=\"end\">#"+id+"</note>\n"+tab+tab+
            "</head>\n")
     l_par = ntrans.getTop()             # get top tiers
     for a,par in enumerate(l_par):
