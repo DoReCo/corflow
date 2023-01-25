@@ -168,6 +168,8 @@ def _readTier(trans,elem,d_timeorder,count):
         tier.setMeta(k,html.unescape(v),"exb")
         if k == "display-name":
             tier.name = html.unescape(v)
+        elif k == "speaker":
+            tier.setMeta("speaker",html.unescape(v))
         # segments
     cont = ""; id = ""; s_meta = {}
     for el in elem:
@@ -175,7 +177,7 @@ def _readTier(trans,elem,d_timeorder,count):
             for e in el:
                 k = e.get('attribute-name')
                 if k and e.text:
-                    tier.setMeta(k,html.unescape(e.text))
+                    tier.setMeta(k,html.unescape(e.text),"exb")
         else:
             count = _readSegment(tier,el,count)
     return count

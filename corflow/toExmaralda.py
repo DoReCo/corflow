@@ -139,9 +139,11 @@ def _writeTier(f,trans,a,tier,d_timetable):
     l_e = ['speaker','category','type']
     txt = "\n\t\t<tier id=\"{}\"".format("TIE"+str(a))
         # tier variables
-    spk = tier.meta("speaker")
-    cat,typ = tier.meta("category"),tier.meta("type")
-    d_m,d_o = _sepUD(tier,l_e,"omni")
+    spk = tier.meta("speaker","exb")
+    if not spk:
+        spk = tier.meta("speaker")
+    cat,typ = tier.meta("category","exb"),tier.meta("type","exb")
+    d_m,d_o = _sepUD(tier,l_e,"exb")
     if not typ: # no preset 'typ' in metadata, must derive default structure
         typ = 't' if a == 0 else 'a'
         # Write metadata 
