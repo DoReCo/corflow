@@ -92,7 +92,7 @@ def _writeSpeakers(f,trans):
     txt = "\n\t\t<speakertable>"
     l_e = ['id','abbreviation','sex','languages-used',
            'l1','l2','comment']
-    l_spk = trans.getSpk()
+    l_spk = trans.getSpk(key="")
     for spk,d_vals in l_spk.items():
         d_m,d_o = _sepUD(d_vals,l_e) # Separate user-defined metadata
             # before language

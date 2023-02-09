@@ -106,20 +106,22 @@ def _writeHeader(f,trans,enc,l_segs):
 def _writeTurnStart(txt,l_segs,a,s,e):
     """Writes 'Turn' start tag. Sub-function of '_writeEpisode()'."""
     seg,l_asegs = l_segs[a],[l_segs[a]]
-    ta,te = seg.start,seg.end
-    ospk = seg.meta("spk_id","tech")
-    l_aspk = [ospk]
+    ta,te = seg.start,seg.end # turn start/end times
+    ospk = seg.meta("spk_id","tech") # current speaker
+    l_aspk = [ospk]; o = -1 # list of speakers, loop check for 'a'
     for b in range(a+1,len(l_segs)):
         aseg = l_segs[b]
         aspk = aseg.meta("spk_id","tech")
-        if aspk != ospk and aseg.start >= te:
-            a = b-1; break
-        l_asegs.append(aseg)
-        if aspk not in l_aspk:
+        if aspk != ospk and aseg.start >= te: # end of turn
+            a = o = b-1; break
+        l_asegs.append(aseg) # add segment
+        if aspk not in l_aspk: # add speaker
             l_aspk.append(aspk)
-        if aseg.end > te:
+        if aseg.end > te: # lengthen turn end time
             te = aseg.end
-        ospk = aseg.meta("spk_id","tech")
+        ospk = aseg.meta("spk_id","tech") # update current speaker
+    if o < 0:
+        a = len(l_segs)
     aspk = " ".join(l_aspk)
     txt = txt+("\t\t\t<Turn speaker=\"{}\" startTime=\"{}\" endTime=\"{}\">"
                .format(aspk,ta,te))

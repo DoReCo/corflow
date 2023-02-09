@@ -119,6 +119,72 @@ class Conteneur:
             d[k] = [v]
         else:
             d[k].append(v)
+    def _sTime(self,tcode,struct,det,ch_find=False):
+        """Finds an element 'elem' by time code 'tcode'.
+        Note: time codes in structure must be ordered.
+        Note: 'ch_find' returns the closest previous segment."""
+        def _sTFind(elem,tcode):
+            if not elem:
+                if struct.elem[0].start > tcode:
+                    return self._retEmpty(det)
+                else:
+                    return self._retDet(struct.elem[-1],det)
+            while elem.end < tcode:
+                if struct.elem[-1] == elem:
+                    return self._retDet(elem,det)
+                nelem = struct.elem[elem.index()+1]
+                if nelem.start > tcode:
+                    return self._retDet(elem,det)
+                elem = nelem
+            while elem.start > tcode:
+                if struct.elem[0] == elem:
+                    return self._retEmpty(det)
+                elem = struct.elem[elem.index()-1]
+            return self._retDet(elem,det)
+        struct = self._fixStruct(struct)
+        if not struct.elem:
+            return struct._retEmpty(det)
+            # Variables
+        i_start = 0; i_end = len(struct.elem)-1; i_check = -1
+        f_start = struct.elem[0].start; f_end = struct.elem[-1].end
+        if f_start == f_end and tcode == f_end:
+            return self._retDet(struct.elem[0],det)
+        elif tcode < f_start or tcode >= f_end:
+            if ch_find and tcode >= f_end:
+                return struct._retDet(struct.elem[-1],det)
+            return struct._retEmpty(det)
+            # Loop
+        elem = None
+        while not i_start == i_end:
+            if tcode < f_start or tcode >= f_end:
+                if ch_find:
+                    return _sTFind(elem,tcode)
+                return struct._retDet(None,det)
+                # Weigh the next check
+            i_check = (i_start +
+                       int((i_end-i_start)*((tcode-f_start)/(f_end-f_start))))
+            elem = struct.elem[i_check]
+                # Found the right index
+            if (tcode >= elem.start and (tcode < elem.end or
+                (tcode == elem.end and elem.end == elem.start))):
+                return struct._retDet(elem,det)
+                # Is before that index
+            elif tcode < elem.start:
+                if i_check-1 >= i_start:
+                    i_end = i_check-1; i_check = i_end
+                    f_end = struct.elem[i_end].end
+                # Is after that index
+            elif tcode >= elem.end:
+                if i_check+1 <= i_end:
+                    i_start = i_check+1; i_check = i_start
+                    f_start = struct.elem[i_start].start
+            # Last loop (i_start == i_end case)
+        elem = struct.elem[i_check]
+        if tcode >= elem.start and tcode < elem.end:
+            return struct._retDet(elem,det)
+        elif ch_find:
+            return _sTFind(elem,tcode)
+        return struct._retDet(None,det)
         # technical get/set functions
     def _fixIndex(self,index):
         if index < 0 or index > len(self.elem):
@@ -200,7 +266,7 @@ class Conteneur:
     def _rem(self,elem,parent=None,rem=False):
         """Removes an element from 'elem'."""
         for child in elem.children():
-            if not chid.struct:
+            if not child.struct:
                 continue
             elif rem:
                 for cc in child.allChildren():
@@ -480,45 +546,14 @@ class Conteneur:
         if ind >= 0 and ind < len(struct.elem):
             return struct._retDet(struct.elem[ind],det)
         return struct._retEmpty(det)
+    def findTime(self,tcode,struct=None,det=False):
+        """Finds an element by time code.
+        Note: closest previous element if none matches.
+        Note: empty if no previous element."""
+        return self._sTime(tcode,struct,det,True)
     def getTime(self,tcode,struct=None,det=False):
         """Gets an element by time code."""
-        struct = self._fixStruct(struct)
-        if not struct.elem:
-            return struct._retDet(None,det)
-            # Variables
-        i_start = 0; i_end = len(struct.elem)-1; i_check = -1
-        f_start = struct.elem[0].start; f_end = struct.elem[-1].end
-        if f_start == f_end and tcode == f_end:
-            return self._retDet(struct.elem[0],det)
-        if tcode < f_start or tcode > f_end:
-            return struct._retEmpty(det)
-            # Loop
-        while not i_start == i_end:
-            if tcode < f_start or tcode >= f_end:
-                return struct._retDet(None,det)
-                # Weigh the next check
-            i_check = (i_start +
-                       int((i_end-i_start)*((tcode-f_start)/(f_end-f_start))))
-            elem = struct.elem[i_check]
-                # Found the right index
-            if (tcode >= elem.start and (tcode < elem.end or
-                (tcode == elem.end and elem.end == elem.start))):
-                return struct._retDet(elem,det)
-                # Is before that index
-            elif tcode < elem.start:
-                if i_check-1 >= i_start:
-                    i_end = i_check-1; i_check = i_end
-                    f_end = struct.elem[i_end].end
-                # Is after that index
-            elif tcode >= elem.end:
-                if i_check+1 <= i_end:
-                    i_start = i_check+1; i_check = i_start
-                    f_start = struct.elem[i_start].start
-            # Last loop (i_start == i_end case)
-        elem = struct.elem[i_check]
-        if tcode >= elem.start and tcode < elem.end:
-            return struct._retDet(elem,det)
-        return struct._retDet(None,det)
+        return self._sTime(tcode,struct,det)
         # add functions
     def create(self,index=-1,name="",start=-1.,end=-1.,content="",elem=[],
                struct=None,d_elem={},metadata={},det=False):
@@ -751,13 +786,39 @@ class Tier(Conteneur):
         self.elem.sort(key=getStart)
         for a in range(len(self.elem)):
             self.d_elem[self.elem[a]][0] = a
-    def fixOverlaps(self):
-        """If two segments overlap, the former will be cut short.
-        Note: if the overlap is caused by its parent, this will do nothing."""
-        for a in range(len(self.elem)-1):
-            seg1 = self.elem[a]; seg2 = self.elem[a+1]
-            if seg1.end > seg2.start:
-                seg1.end = seg2.start
+    def fixOverlaps(self,cont=""):
+        """Looks for segment overlaps and tries to fix it."""
+        def _addASeg(atier,seg):
+            aseg = atier.create(-1,"",seg.start,seg.end,seg.content)
+            aseg.setMeta("oseg",seg,"tech")
+            return aseg
+        atier = self.copy(empty=True)
+        for a in range(len(self.elem)-1,-1,-1):
+            seg = self.elem[a]
+            aseg = atier.findTime(seg.start)
+            if not aseg: # Tier start
+                if not atier.elem: # First segment
+                    _addASeg(atier,seg); continue
+                aseg = atier.elem[0]
+            while aseg.start > seg.end: # All overlapped segments
+                if seg.start < aseg.start and seg.end < aseg.end: # mid-left
+                    if (not cont) or (cont in seg.content):
+                        seg.end = aseg.start
+                    else:
+                        aseg.meta("oseg","tech").start = seg.end
+                    break
+                elif seg.start > aseg.start and seg.end > aseg.end: # mid-right
+                    if (not cont) or (cont in seg.content):
+                        seg.start = aseg.end
+                    else:
+                        aseg.meta("oseg","tech").end = seg.start
+                elif seg.start <= aseg.start and seg.end >= aseg.end: # mid
+                    if (not cont) or (cont in seg.content):
+                        self.pop(a); break
+                    else:
+                        oseg = aseg.meta("oseg","tech")
+                        self.remove(oseg); atier.remove(aseg)
+            _addASeg(atier,seg)
     def fixGaps(self,sym="_"):
         """Adds segments in gaps."""
         
@@ -818,6 +879,15 @@ class Tier(Conteneur):
         for seg in self:
             if re.match(pattern,seg.content):
                 seg.content = sym
+    def timeParent(self,parent,mid=0.):
+        """Parents, including children by time."""
+        self.setParent(parent)
+        for seg in self:
+            m = seg.start
+            if m > 0.:
+                m = m+((seg.end-seg.start)*mid)
+            pseg = parent.getTime(m,parent)
+            seg.setParent(pseg)
 
     #### TRANSCRIPTION ####
 class Transcription(Conteneur):
@@ -968,10 +1038,10 @@ class Transcription(Conteneur):
             l_par = l_tmp.copy(); l_tmp.clear() # fill 'l_par' with children
             if not l_par:
                 break
-    def fixOverlaps(self):
+    def fixOverlaps(self,cont=""):
         """If two segments overlap, the former will be cut short."""
         for tier in self:
-            tier.fixOverlaps()
+            tier.fixOverlaps(cont)
     def fixGaps(self,sym="_"):
         """Adds segments in gaps."""
         for tier in self:
