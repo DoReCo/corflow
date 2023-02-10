@@ -1131,6 +1131,39 @@ class Corpus(Conteneur):
                 yield self._retDet(tier,det)
 
     #### Support Functions ####
+D_ESCAPE = {}
+D_UNESCAPE = {}
+def _getOrd(char):
+    """Copied from <stackoverflow.com/a/7291240/1233830>."""
+    if len(char) != 2:
+        return ord(char)
+    return 0x10000 + (ord(char[0]) - 0xD800) * 0x400 + (ord(char[1]) - 0xDC00)
+def _fillEscape():
+    """Fills decicated dicts' for escaping."""
+    from html.entities import html5
+    for k,v in html5.items():
+        k,v = '&{}'.format(k), _getOrd(v)
+        D_ESCAPE[v] = k; D_UNESCAPE[k] = v
+def escape(data):
+    """Custom function to escape all characters."""
+    if not D_ESCAPE:
+        _fillEscape()
+    return data.translate(D_ESCAPE)
+def unescape(data):
+    if not D_UNESCAPE:
+        _fillEscape()
+    nex,k,ld = "","",len(data)
+    for a in range(len(data)-1,-1,-1): # loop (key > 1-char)
+        if data[a] == ";": # start
+            k,nex = data[a],data[a+1:] if a+1 < ld else ""
+        elif k and data[a] == "&": # end
+            k = (k+"&")[::-1] # reverse to avoid prepend
+            repl = D_UNESCAPE.get(k,"")
+            if repl:
+                data = data[:a]+repl+nex
+        elif k: # mid (append)
+            k = k+data[a]
+    return data
 def _getFunc():
     """Returns an import function depending on Python version."""
     if sys.version_info < (3,4):
