@@ -51,7 +51,7 @@ def _readHyperval(txt):
     d_attr = {}
     if not txt:
         return d_attr
-    l_attr = [txt[0]]; ch1,ch2 = False,True
+    l_attr = [""]; ch1,ch2 = False,True
     for char in txt:
         if not ch2:
             ch2 = True
