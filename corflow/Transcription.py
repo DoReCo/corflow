@@ -786,49 +786,37 @@ class Tier(Conteneur):
         self.elem.sort(key=getStart)
         for a in range(len(self.elem)):
             self.d_elem[self.elem[a]][0] = a
-    def fixOverlaps(self,cont=""):
+    def fixOverlaps(self,cont="",sort=False):
         """Looks for segment overlaps and tries to fix it."""
-        def _addASeg(atier,seg):
-            aseg = atier.create(-1,"",seg.start,seg.end,seg.content)
-            aseg.setMeta("oseg",seg,"tech")
-            return aseg
+        ls = len(self)
+        if ls < 2:
+            return
         atier = self.copy(empty=True)
-        for a in range(len(self.elem)-1,-1,-1):
-            seg = self.elem[a]
-            aseg = atier.findTime(seg.start)
-            if not aseg: # Tier start
-                if not atier.elem: # First segment
-                    _addASeg(atier,seg); continue
-                aseg = atier.elem[0]
-            while aseg.start > seg.end: # All overlapped segments
-                if seg.start < aseg.start and seg.end < aseg.end: # mid-left
-                    if (not cont) or (cont in seg.content):
-                        seg.end = aseg.start
-                    else:
-                        aseg.meta("oseg","tech").start = seg.end
-                    break
-                elif seg.start > aseg.start and seg.end > aseg.end: # mid-right
-                    if (not cont) or (cont in seg.content):
-                        seg.start = aseg.end
-                    else:
-                        aseg.meta("oseg","tech").end = seg.start
-                elif seg.start <= aseg.start and seg.end >= aseg.end: # mid
-                    if (not cont) or (cont in seg.content):
-                        self.pop(a); break
-                    else:
-                        oseg = aseg.meta("oseg","tech")
-                        self.remove(oseg); atier.remove(aseg)
-            _addASeg(atier,seg)
+        if sort:
+            self.sortByTime()
+        for a in range(1,ls): # first pass, no overlap
+            s1,s2 = self.elem[a-1],self.elem[a]
+            if s1.end > s2.start:
+                if cont and re.search(cont,s1.content):
+                    s2.start = s1.end
+                else:
+                    s1.end = s2.start
+        for a in range(ls-1,-1,-1): # second path, only valid segments
+            s = self.elem[a]
+            if s.end <= s.start:
+                continue
+            atier.add(0,s)
+        self.struct.elem[self.index()] = atier # replace
+        self.elem,self.d_elem = atier.elem,atier.d_elem
+        return self._retDet(atier,det)
     def fixGaps(self,sym="_"):
         """Adds segments in gaps."""
-        
         ls = len(self)
         if self.elem and self.elem[-1].end < self.end:      # End
             self.create(ls,"a",self.elem[-1].end,self.end,sym)
         for a in range(ls-1,0,-1):                                  # Middle
             if self.elem[a-1].end < self.elem[a].start:
-                self.create(a,"a",self.elem[a-1].end,
-                            self.elem[a].start,sym)
+                self.create(a,"a",self.elem[a-1].end,self.elem[a].start,sym)
         if self.elem and self.elem[0].start > self.start:   # Start
             self.create(0,"a",self.start,self.elem[0].start,sym)
     def remGaps(self,sym="_"):
