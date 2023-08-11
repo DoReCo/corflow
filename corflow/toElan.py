@@ -195,7 +195,13 @@ def _setTypes(trans):
         ch_subd = False; ch_time = False
         for pseg in ptier:              # Iterate over all segments if need be
             d_child = pseg.childDict()
-            if (not tier in d_child) or len(d_child[tier]) <= 1:# ASSOC
+            if (not tier in d_child) or (not d_child[tier]):# ASSOC
+                continue
+            elif len(d_child[tier]) == 1: # test single-segment case
+                cseg = d_child[tier][0]
+                if ((not math.isclose(cseg.start,pseg.start)) or 
+                    (not math.isclose(cseg.end,pseg.end))):
+                    return 'time'
                 continue
             typ = 'subd'                # SUBD
             l_child = d_child[tier]

@@ -533,6 +533,14 @@ class Conteneur:
             if re.search(name,el.name):
                 return self._retDet(el,det)
         return self._retEmpty(det)
+    def findAllName(self,name,struct=None,det=False):
+        """Gets all elements by name (regular expression)."""
+        struct = self._fixStruct(struct)
+        l_res = []
+        for el in struct.elem:
+            if re.search(name,el.name):
+                l_res.append(self._retDet(el,det))
+        return l_res
     def getName(self,name,struct=None,det=False):
         """Gets an element by name."""
         struct = self._fixStruct(struct)
@@ -806,9 +814,7 @@ class Tier(Conteneur):
             if s.end <= s.start:
                 continue
             atier.add(0,s)
-        self.struct.elem[self.index()] = atier # replace
         self.elem,self.d_elem = atier.elem,atier.d_elem
-        return self._retDet(atier,det)
     def fixGaps(self,sym="_"):
         """Adds segments in gaps."""
         ls = len(self)
@@ -917,10 +923,12 @@ class Transcription(Conteneur):
         return cop
     
         # Iter functions
-    def iterSeg(self,det=False):
+    def iterSeg(self,l_tiers=[],det=False):
         """Iterates over all segments of the Transcription.
         Returns a reference (name,index,pointer) if 'det'."""
-        for tier in self:
+        if not l_tiers:
+            l_tiers = self.elem
+        for tier in l_tiers:
             for seg in tier:
                 yield self._retDet(seg)
     def iterTime(self,l_tiers=[],det=False):
