@@ -151,17 +151,17 @@ def _writeBody(f,ntrans,d_timetable,id):
     def nextSeg(l_par):
         seg,p = None,-1
         for b,tpl in enumerate(l_par):
-            par,pos,max = tpl
+            par,pos,lp = tpl
             if pos < 0:
                 continue
             elif not seg or par.elem[pos].start < seg.start:
                 seg = par.elem[pos]; p = b
         if seg:
-            par,pos,max = l_par[p]
+            par,pos,lp = l_par[p]
             pos = pos+1
-            if pos >= max:
+            if pos >= lp:
                 pos = -1
-            l_par[p] = (par,pos,max)
+            l_par[p] = (par,pos,lp)
         return seg
     
     tab,ttab,i = "\t\t","\t\t\t\t",0
@@ -171,7 +171,7 @@ def _writeBody(f,ntrans,d_timetable,id):
            "</head>\n")
     l_par = ntrans.getTop()             # get top tiers
     for a,par in enumerate(l_par):
-        l_par[a] = (par,0,len(par))
+        l_par[a] = (par,0 if len(par) > 0 else -1,len(par))
     while True:                         # for each segment
         seg = nextSeg(l_par)
         if not seg:

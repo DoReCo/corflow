@@ -292,7 +292,7 @@ class Conteneur:
             return self._mdList(self.metadata[div][k],ch_list,empty)
     def getMeta(self,key,div="omni",ch_list=False,empty=""):
         """Just another function name for the same thing."""
-        self.meta(key,div,ch_list,empty)
+        return self.meta(key,div,ch_list,empty)
     def checkMeta(self,key,val="",div="omni",struct=None):
         """Checks a key (or value if set) in metadata."""
         struct = self._fixStruct(struct)
