@@ -253,6 +253,15 @@ def _fixStructure(trans,d_tiers,d_segs):
             _timeSplit(l_corr)
             l_corr = []
         return nch_corr,l_corr
+    def _parSeg(ptier,tier,seg):
+        seg,ch_time,ref = d_segs[seg.name]
+        pseg = None
+        if ch_time and ptier:
+            pseg = trans.getTime(seg.start,ptier)
+        elif ref:
+            pseg = d_segs[ref][0]
+        if pseg:
+            seg.setParent(pseg)
 
     trans.getSpk()  # Add parents to 'trans'
         # Time_subdivision (replacing empty TIME_VALUEs)
@@ -276,16 +285,17 @@ def _fixStructure(trans,d_tiers,d_segs):
         if ptier:
             tier.setParent(ptier)
         # Segment parenting
-    for name,l_val in d_segs.items():
-        seg,ch_time,ref = l_val[0],l_val[1],l_val[2]
-        tier = seg.struct; ptier = tier.parent(); pseg = None
-        if ch_time and ptier:
-            pseg = trans.getTime(seg.start,ptier)
-        elif ref:
-            pseg = d_segs[ref][0]
-        if pseg:
-            seg.setParent(pseg)
-
+    for ptier in trans.getTop():
+        l_child = ptier.children()
+        while l_child:
+            l_tmp = []
+            for ctier in l_child:
+                for cseg in ctier:
+                    if not cseg.name in d_segs:
+                        continue
+                    _parSeg(ptier,ctier,cseg)
+                l_tmp = l_tmp + ctier.children()
+            l_child = l_tmp
         # And now the time codes
     trans.setChildTime()
     trans.setBounds()
