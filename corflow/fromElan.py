@@ -285,11 +285,12 @@ def _fixStructure(trans,d_tiers,d_segs):
         if ptier:
             tier.setParent(ptier)
         # Segment parenting
-    for ptier in trans.getTop():
-        l_child = ptier.children()
+    for tier in trans.getTop():
+        l_child = tier.children()
         while l_child:
             l_tmp = []
             for ctier in l_child:
+                ptier = ctier.parent()
                 for cseg in ctier:
                     if not cseg.name in d_segs:
                         continue
