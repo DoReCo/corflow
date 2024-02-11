@@ -288,7 +288,7 @@ def _fixStructure(trans,d_tiers,d_segs):
     for tier in trans.getTop():
         l_child = tier.children()
         while l_child:
-            l_tmp = []
+            l_tmp,otier = [],None
             for ctier in l_child:
                 ptier = ctier.parent()
                 for cseg in ctier:
@@ -296,9 +296,9 @@ def _fixStructure(trans,d_tiers,d_segs):
                         continue
                     _parSeg(ptier,ctier,cseg)
                 l_tmp = l_tmp + ctier.children()
+                if (not otier) or (otier != ptier):
+                    ptier.setChildTime(); otier = ptier
             l_child = l_tmp
-        # And now the time codes
-    trans.setChildTime()
     trans.setBounds()
 
 def loadEAF(path,name=""):
