@@ -298,6 +298,7 @@ def _fixStructure(trans,d_tiers,d_segs):
                 l_tmp = l_tmp + ctier.children()
                 if (not otier) or (otier != ptier):
                     ptier.setChildTime(); otier = ptier
+            ptier.setChildTime()
             l_child = l_tmp
     trans.setBounds()
 
