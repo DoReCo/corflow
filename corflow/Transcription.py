@@ -1068,7 +1068,6 @@ class Transcription(Conteneur):
         
         while True:                         ## Go through all segments
             na,nseg,ntime = -1,None,-1.
-            debug += 1
             for a in range(len(l_tiers)):   ## Pick the next segment
                 pos,tmax,tier = l_pos[a],l_max[a],l_tiers[a]
                 if pos < 0:                 # end of tier
