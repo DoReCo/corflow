@@ -1065,32 +1065,33 @@ class Transcription(Conteneur):
             l_pos.append(0); l_dir.append("s"); l_max.append(len(tier))
             if l_max[-1] == 0:
                 l_pos[-1] = -1
-        while True:
+        
+        while True:                         ## Go through all segments
             na,nseg,ntime = -1,None,-1.
+            debug += 1
             for a in range(len(l_tiers)):   ## Pick the next segment
                 pos,tmax,tier = l_pos[a],l_max[a],l_tiers[a]
                 if pos < 0:                 # end of tier
                     continue
                 seg = tier.elem[pos]
-                if not nseg:                # startup
+                if l_dir[a] == "s" and (seg.start < ntime or ntime < 0.):
                     na,nseg,ntime = a,seg,seg.start
-                elif l_dir[a] == "s" and seg.start < ntime:
-                    na,nseg,ntime = a,seg,seg.start
-                elif l_dir[a] == "e" and seg.end < ntime:
-                    na,nseg,ntime = a,seg,seg.start
+                elif l_dir[a] == "e" and (seg.end < ntime or ntime < 0.):
+                    na,nseg,ntime = a,seg,seg.end
             if not nseg:                    ## All tiers exhausted
                 break
             elif not otime:                 # startup
                 otime = ntime
             elif math.isclose(otime,ntime,abs_tol=abs_tol):
-                if l_dir[a] == "s":         # start time
+                if l_dir[na] == "s":        # start time
                     nseg.start = otime
-                elif l_dir[a] == "e":       # end time
+                elif l_dir[na] == "e":      # end time
                     nseg.end = otime
-            else:                           # move on
+            elif l_dir[na] == "s":          # move on start
                 otime = nseg.start
+            else:                           # move on end
+                otime = nseg.end
             l_pos[na],l_dir[na] = incr_pos(l_pos[na],l_dir[na],l_max[na])
-        
     def renameSegs(self,n="a"):
         """Renames every segment using 'n'+increment."""
         incr = 0
