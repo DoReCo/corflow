@@ -287,18 +287,19 @@ def _fixStructure(trans,d_tiers,d_segs):
         # Segment parenting
     for tier in trans.getTop():
         l_child = tier.children()
-        while l_child:
-            l_tmp,otier = [],None
+        while l_child:  # parent
+            l_tmp,l_par = [],[]
             for ctier in l_child:
                 ptier = ctier.parent()
+                if not ptier in l_par:
+                    l_par.append(ptier)
                 for cseg in ctier:
                     if not cseg.name in d_segs:
                         continue
                     _parSeg(ptier,ctier,cseg)
                 l_tmp = l_tmp + ctier.children()
-                if (not otier) or (otier != ptier):
-                    ptier.setChildTime(); otier = ptier
-            ptier.setChildTime()
+            for ptier in l_par: # set time codes
+                ptier.setChildTime(ch=False)
             l_child = l_tmp
     trans.setBounds()
 
