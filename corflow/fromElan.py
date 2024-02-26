@@ -299,7 +299,7 @@ def _fixStructure(trans,d_tiers,d_segs):
                     _parSeg(ptier,ctier,cseg)
                 l_tmp = l_tmp + ctier.children()
             for ptier in l_par: # set time codes
-                ptier.setChildTime(ch=False)
+                ptier.setChildTime()
             l_child = l_tmp
     trans.setBounds()
 
