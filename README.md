@@ -44,6 +44,7 @@ We don't claim here that all *tiers*, that is, all sets of segments, are linguis
 
 ```
 *Start* and *end* contain the time boundaries and the content the *text*. This is how data is stored in the `Transcription` class in general, although more variables exist.
+```
 
 ## 6. Conclusion
 The question of [file conversion](https://corflo.hypotheses.org/122) might never be answered in a satisfactory manner. Originally just an nth homemade conversion tool, our hope is this becomes an easily-accessible package for other teams/projects to use either as is, for basic use, or by being able to quickly adapt it to their requirements.
