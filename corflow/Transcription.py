@@ -31,7 +31,7 @@ Note:   'metadata' is a structure "dict<str:dict<str:list<str>>>", or:
         /!\ 'speakers' has another layer of dict' for each speaker.
 """
  
-import sys,os,re
+import sys,os,re, copy
 
     #### Support class ####
 class Conteneur:
@@ -48,7 +48,7 @@ class Conteneur:
         self.struct = struct        # (pntr) its container
         self.d_elem = d_elem        # (dct<pntr:lst<pntr>>) its elements
             # metadata variables
-        self.metadata = metadata.copy()# (dict<str:lst<str>>) open metadata
+        self.metadata = copy.deepcopy(metadata) # (dict<str:lst<str>>) open metadata
 
         # default functions
     def __bool__(self):
