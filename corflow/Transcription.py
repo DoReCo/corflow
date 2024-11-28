@@ -31,7 +31,7 @@ Note:   'metadata' is a structure "dict<str:dict<str:list<str>>>", or:
         /!\ 'speakers' has another layer of dict' for each speaker.
 """
  
-import sys,os,re, copy
+import sys,os,re,copy
 
     #### Support class ####
 class Conteneur:
@@ -256,7 +256,7 @@ class Conteneur:
         return struct._retDet(struct.elem[index],det)
     def _copy(self,struct,index,elem,parent,ch_child,det):
         """Copies an already existing element 'elem' to 'struct'."""
-        struct.elem.insert(index,elem.copy(struct))         # copy
+        struct.elem.insert(index,elem.copy(struct,parent))         # copy
         struct.d_elem[struct.elem[index]] = [index,parent]  # parent
         if ch_child:                                        # children
             l_struct = elem.struct.d_elem[elem][2:]
@@ -686,20 +686,20 @@ class Conteneur:
     #### SEGMENT ####
 class Segment(Conteneur):
     """Class containing some text between two time codes."""
-    
+
     def __init__(self,name="",start=-1.,end=-1.,content="",tier=None,
                  metadata={}):
             # See 'Conteneur' class for shared variables
         Conteneur.__init__(self,name,start,end,content,[],tier,{},metadata)
-        
+
         # default functions
-    def copy(self,tier=None):
+    def copy(self,tier=None,parent=None):
         """Returns a copy of the Segment."""
         return Segment(self.name,self.start,self.end,self.content,
                        tier,self.metadata.copy())
-    
+
         # navigation
-    def segs():
+    def segs(self):
         return self.elem
     def ti(self):
         """Returns self.tier's pointer."""
@@ -760,18 +760,20 @@ class Tier(Conteneur):
         Conteneur.__init__(self,name,start,end,"",[],trans,{},metadata)
     
         # default functions
-    def copy(self,trans=None,empty=False):
-        cop = Tier(self.name,self.start,self.end,trans,
+    def copy(self,trans=None,parent=None,empty=False):
+        cp_tier = Tier(self.name,self.start,self.end,trans,
                     self.metadata.copy())
-        if empty:
-            return cop
-        for seg in self.elem:
-            nseg = cop.add(-1,seg.copy(cop))
-            if seg.parent():
-                nseg.setParent(seg.parent(),False,False)
-            for child in seg.children():
-                nseg.addChild(child,False,False)
-        return cop
+        if parent == None:
+            for seg in self.elem:
+                cp_tier.add(-1,seg)
+        elif self.parent() == parent:
+            for seg in self.elem:
+                cp_tier.add(-1,seg,seg.parent())
+        else:
+            for seg in self.elem:
+                seg_par = parent.getTime(seg.start)
+                cp_tier.add(-1,seg,seg_par)
+        return cp_tier
 
         # navigation
     def tr(self):
