@@ -30,6 +30,8 @@ pip install corflow
 
 To learn **how to use** Corflow, visit the [Github's wiki](https://github.com/DoReCo/corflow/wiki) and take a look at the Corflow [tutorial series](https://github.com/a-leks-icon/AIRAL/tree/main/corflow_scripts/tutorials) provided by the [AIRAL](https://github.com/a-leks-icon/AIRAL) project.
 
+If you encounter **problems trying to install** and use Corflow, please visit the [first tutorial](https://github.com/a-leks-icon/AIRAL/tree/main/corflow_scripts/tutorials/00_getting_started) of the mentioned tutorial series. 
+
 ## Objectives
 
 * **X-to-Y conversions**: Conversions from any supported format X to another supported format Y, e.g. from ELAN's .eaf to Praat's .TextGrid, in the same manner as [Pepper](https://corpus-tools.org/pepper)'s Swiss Army knife approach.

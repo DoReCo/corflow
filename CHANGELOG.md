@@ -10,11 +10,11 @@ This file documents all changes made to Corflow when a new version is released.
 
 Please note that versions prior to version 3.3.0 were not tracked.
 
-## [3.3.0] -- 2025-02-11
+## [3.3.0] -- 2025-02-14
 
 ### Added
 
-* CHANGELOG.md.
+* CHANGELOG.md
 * LICENSE
 
 ### Changed
