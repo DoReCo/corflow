@@ -1,50 +1,88 @@
 # Corflow
 A file conversion/manipulation software for corpus linguistics.
 
-See the [Github's wiki](https://github.com/DoReCo/corflow/wiki) for documentation.
+* See the [Github's wiki](https://github.com/DoReCo/corflow/wiki) for documentation.
+* Current version: **3.3.0** from **2025-02-14**. For a complete list of changes, see the [Changelog](CHANGELOG.md).
 
-## 0. Readme updates
-François Delafontaine: Neuchâtel (Switzerland), 22.08.2022
+## What is Corflow?
 
-## 1. Context
-*Corflow*, originally the 'multitool', has been started around 2015 to anonymize and convert files for the [OFROM](http://www11.unine.ch/) corpus (at Neuchatel, Switzerland). Initially in C++, it was reworked between 2016-9 in the ANR-DFG [SegCor](segcor.cnrs.fr) project (at Orleans, France) and translated in Python. It is now and since 2019 being developped within the ANR-DFG [DoReCo](http://www.doreco.info/) project (at Lyon, France). 
+**Corflow** is a tool written in Python to (a) manipulate files or (b) change a file's format, mainly applying to files used in the context of **corpus linguistics** (oral linguistics) and **multi-layered annotated corpora**. It allows performing operations on a file's stored linguistic information from any supported format and to safe the changes as a file from any supported format.
 
-## 2. Objectives
-While core objectives are the conversion and manipulation of files in the context of corpus linguistics (notably oral linguistics), some precisions are needed.
-But first: *conversion* means changing a file's format. A *format* is the way information is stored in the file. We will generally use the software or collection associated with a format to designate the format itself. *Elan-to-Praat* for example means converting from the '.eaf' format to the '.TextGrid' format. Finally *manipulation* means operations on the stored information itself: merging, anonymization, inter-rater agreement, etc. 
-In details, the objectives are:
-1. An "X-to-Y" conversion: meaning conversion should be possible from any supported format to any other supported format (see [Pepper](https://corpus-tools.org/pepper/)'s swiss-army knife approach).
-2. A *lossless* conversion: meaning that as little information should be lost during conversion as is feasible. 
-3. Accessibility: meaning that the package should be available (a) for automatic integration, (b) through command prompt and (c) through a dedicated graphical interface.
-4. More accessibility: meaning that the package should require as few third-party libraries as possible, be easy to understand and to expand (by users adding their own scripts).
-This software's public (in corpus linguistics) is expected to have little to no experience with code. More advanced users are expected to prefer [Pepper](https://corpus-tools.org/pepper/). 
+As of today, Corflow supports the following file formats:
 
-## 3. Limitations
-No versioning has been yet set in place.
+|Tool|Format|
+|---|---|
+|[ELAN](https://archive.mpi.nl/tla/elan)|.eaf|
+|[Praat](https://www.fon.hum.uva.nl/praat/)|.TextGrid|
+|[EXMARaLDA](https://exmaralda.org/de/)|.xml|
+|[Pangloss](https://github.com/CNRS-LACITO/Pangloss_website)|.xml|
+|[Transcriber](https://software.sil.org/toolbox/)|.trs|
+
+Future releases are planned to include an import and export option from .csv files as well as from [ANNIS](https://corpus-tools.org/annis/).
+
+## Getting Started
+
+Install Corflow via PyPI using pip by typing the following command into your terminal (within an active virtual environment):
+
+```shell
+pip install corflow
+```
+
+To learn **how to use** Corflow, visit the [Github's wiki](https://github.com/DoReCo/corflow/wiki) and take a look at the Corflow [tutorial series](https://github.com/a-leks-icon/AIRAL/tree/main/corflow_scripts/tutorials) provided by the [AIRAL](https://github.com/a-leks-icon/AIRAL) project.
+
+## Objectives
+
+* **X-to-Y conversions**: Conversions from any supported format X to another supported format Y, e.g. from ELAN's .eaf to Praat's .TextGrid, in the same manner as [Pepper](https://corpus-tools.org/pepper)'s Swiss Army knife approach.
+* **One underlying model**: Manipulating a file's stored information from any supported format using the same underlying model.
+* **Lossless conversions**: As little information as possible should be lost during converting a file.
+* **Accessibility**: The package should be available for (a) automatic integration, (b) through command prompts and (c) a dedicated graphical interface.
+* **Even more accessibility**: The package should require as few third-party libraries as possible, be easy to understand and to expand (by users adding their own scripts). The software's core audience is expected to have little to no experience with programming languages and writing code. More advanced users are expected to prefer [Pepper](https://corpus-tools.org/pepper/). 
+
+## Context
+
+Corflow, originally the *multitool*, has been started around 2015 to anonymize and convert files for the [OFROM](https://ofrom.unine.ch/) corpus (at Neuchatel, Switzerland). Initially in C++, it was reworked from 2016 to 2019 in the ANR-DFG [SegCor](segcor.cnrs.fr) project (at Orleans, France) and translated into Python. It was further developed from 2019 to 2022 within the ANR-DFG [DoReCo](https://doreco.info/) project (at Lyon, France). At present, it is actively developed and used for the [DoReCo corpus](https://doreco.huma-num.fr/) within the [AIRAL](https://www.leibniz-zas.de/en/research/research-areas/laboratory-phonology/airal) project (at ZAS Berlin).
+
+## Limitations
+
 * No user interface provided.
 * No customized error messages.
-* Current supported formats are. 'Praat (.TextGrid)', 'Elan (.eaf)', 'Pangloss (.xml)'.
+
 Testing has been limited and users should expect potential errors. TEI import is still in development. 
 
-## 4. Package
-In its Python version, Corflow is considered as a package to import as is. That package corresponds to the `conversion` folder.
-The *conversion* folder should contain a 'Transcription.py' file and a set of 'fromX.py' and 'toX.py' files (for import and export respectively). 
+## How does it work?
 
-## 5. How does it work?
-Corflow is built around a `Transcription` class used for "universal" information storage: all information from all the supported formats should fit in. Import scripts instantiate a Transcription object and fill it with the file's information; export scripts use a Transcription object to write a file:
-    X -fromX-> Transcription -toY-> Y
-Manipulations are expected to operate on Transcription objects:
-    X -fromX-> Transcription -manipulation-> Transcription -toY-> Y
-In practice this can vary, as manipulations are open and dependent on the user's needs. 
+The following edited screenshot taken of the file `doreco_teop1238_Gol_01.eaf` from the [DoReCo corpus version 2.0 for the language *Teop*](https://doreco.huma-num.fr/languages/teop1238) in ELAN illustrates Corflow's model:
 
-The `Transcription` class is divided in (a) *data* and (b) *metadata*.
-(5a) `Data` is, for oral linguistics, what corresponds to a transcription. A transcription is text aligned to sound. The alignment relies on time points (`time boundaries` or `timestamps`). A set composed of a given text and two time boundaries (its start and end points relative to sound) is called a `Segment`: technically any arbitrary unit generated that way. *Segments* might not be linguistic units, and might not be units at all (and conversely, a linguistic unit like the *pause* might have no corresponding segment). A set of segments is called a `Tier` and a set of *tiers* corresponds to the whole *transcription*.
-We don't claim here that all *tiers*, that is, all sets of segments, are linguistic *transcriptions*. They can also represent translations, annotations, etc. Tiers, like segments, are type-neutral. 
-(5b) `Metadata` is, for corpus linguistics, all information around the transcription: where, when, who, how... 
+![Screenshot of the file 'doreco_teop1238_Gol_01.eaf' with added rectangles displaying Corflow classes and objects 'Transcription', 'Tier' and 'Segment'.](corflow_classes_elan_example.png)
 
-```
-*Start* and *end* contain the time boundaries and the content the *text*. This is how data is stored in the `Transcription` class in general, although more variables exist.
-```
+Corflow is built around a `Transcription` class used for *universal* information storage: all information from all the supported formats fit in. Import scripts/functions, e.g. *fromElan*, instantiate a `Transcription` object and fill it with the file's information; export scripts/functions, e.g. *toElan*, use a `Transcription` object to write a file. Manipulations are expected to operate on `Transcription` objects (after the import and before the export). In practice, this can vary as manipulations are open and dependent on the user's needs.
 
-## 6. Conclusion
-The question of [file conversion](https://corflo.hypotheses.org/122) might never be answered in a satisfactory manner. Originally just an nth homemade conversion tool, our hope is this becomes an easily-accessible package for other teams/projects to use either as is, for basic use, or by being able to quickly adapt it to their requirements.
+Generally, a *transcription* is for oral linguists text aligned to sound whereby the alignment relies on two time points. This notion of a transcription is captured in Corflow by the `Segment` class. A `Segment` object consists of text (`content`) with a `start` and `end` time. Segments might not be linguistic units, and might not be units at all (and conversely, a linguistic unit like the *pause* might have no corresponding `Segment`). A set of `Segments` corresponds to a `Tier` object and a set of `Tiers` corresponds to the whole `Transcription`. We don't claim here that all tiers, that is, all sets of segments, are linguistic transcriptions. They can also represent translations, annotations, etc. Tiers, like segments, are type-neutral.
+
+Transcriptions, tiers and segments contain many more information and allow to access this information using different attributes and methods. For example, the `metadata` attribute contains all information around the transcription: where, when, who, how, ... The `parent` method and similar methods capture the hierarchical relations between segments and tiers. To learn more about the different attributes and methods available, visit the [Github's wiki](https://github.com/DoReCo/corflow/wiki) and take a look at the Corflow [tutorial series](https://github.com/a-leks-icon/AIRAL/tree/main/corflow_scripts/tutorials) provided by the [AIRAL](https://github.com/a-leks-icon/AIRAL) project.
+
+## Conclusion
+
+The question of [file conversion](https://corflo.hypotheses.org/122) might never be answered in a satisfactory manner. Originally just an nth homemade conversion tool, our hope is Corflow becomes an easily accessible package for other teams and projects to use either as is, for basic use, or by being able to quickly adapt it to their requirements.
+
+## Author and Developers
+
+Corflow was created and is developed by [François Delafontaine](https://github.com/Delafontainef), and is actively developed and maintained by [Aleksandr Schamberger](https://github.com/a-leks-icon).
+
+## References
+
+DoReCo 2.0 database:
+
+* Seifart, Frank, Ludger Paschen & Matthew Stave (eds.). 2024. Language Documentation Reference Corpus (DoReCo) 2.0. Lyon: Laboratoire Dynamique Du Langage (UMR5596, CNRS & Université Lyon 2). DOI:10.34847/nkl.7cbfq779
+
+DoReCo 2.0 Teop dataset:
+
+* Mosel, Ulrike. 2024. Teop DoReCo dataset. In Seifart, Frank, Ludger Paschen and Matthew Stave (eds.). Language Documentation Reference Corpus (DoReCo) 2.0. Lyon: Laboratoire Dynamique Du Langage (UMR5596, CNRS & Université Lyon 2). https://doreco.huma-num.fr/languages/teop1238 (Accessed on 14/02/2025). DOI:10.34847/nkl.9322sdf2
+
+Methods used in building DoReCo:
+
+* Paschen, Ludger, François Delafontaine, Christoph Draxler, Susanne Fuchs, Matthew Stave & Frank Seifart. 2020. Building a Time-Aligned Cross-Linguistic Reference Corpus from Language Documentation Data (DoReCo). In Proceedings of The 12th Language Resources and Evaluation Conference, 2657–2666. Marseille, France: European Language Resources Association. https://www.aclweb.org/anthology/2020.lrec-1.324 (2024/03/05).
+
+## License
+
+Corflow and this repository are licensed under the [Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE) license. For a quick review of the license, visit the [license's website](https://creativecommons.org/licenses/by/4.0/).
