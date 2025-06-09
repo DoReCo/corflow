@@ -763,6 +763,8 @@ class Tier(Conteneur):
     def copy(self,trans=None,parent=None,empty=False):
         cp_tier = Tier(self.name,self.start,self.end,trans,
                     self.metadata.copy())
+        if empty:
+            return cp_tier
         if parent == None:
             for seg in self.elem:
                 cp_tier.add(-1,seg)
