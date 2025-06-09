@@ -17,6 +17,12 @@ from .Transcription import Corpus,Transcription
 import os,html,math
 
     # Technical functions
+def _rename_segs(trans,value):
+    '''Automatically renames all segments in a given transcription *trans*, if *value* is either truthy or equals None.'''
+    if value or value == None:
+        incr = 0
+        for tier in trans:
+            incr = tier.renameSegs("a",incr)
 def _chEncoding(trans,encoding):
     """Seeks encoding (default "utf_8")."""
     
@@ -394,7 +400,7 @@ def _writeFooter(f,trans,d_footer):
          # End of ANNOTATION_DOCUMENT
     txt = txt+"</ANNOTATION_DOCUMENT>"
     f.write(txt)
-def saveEAF(path,trans,encoding):
+def saveEAF(path,trans,encoding,rename_segs):
     """Exports a single Transcription into an EAF file.
     ARGUMENTS:
     - path          : (str) Full path to a directory or file.
@@ -409,6 +415,7 @@ def saveEAF(path,trans,encoding):
     if os.path.isdir(path):                     # If it's a directory
         path = os.path.join(path,trans.name+".eaf")     # Use 'trans.name'
     encoding = _chEncoding(trans,encoding)      # Encoding
+    _rename_segs(trans,rename_segs)             # Renaming segments
     ntrans = trans.copy()                       # We use a copy from there
     d_doc,d_header,d_footer = _getMeta(ntrans)  # We recover the metadata
 
@@ -439,11 +446,12 @@ def toElan(path,trans,**args):
     Note: Creates a copy for each Transcription while exporting."""
     
         # Args
-    encoding = args.get('encoding')     # file encoding (for all files)
+    encoding = args.get('encoding')         # file encoding (for all files)
+    rename_segs = args.get('rename_segs')   # whether to rename segments
         # Overload
     f = d_load.get(type(trans))
     if f:
-        f(path,trans,encoding)
+        f(path,trans,encoding,rename_segs)
     else:
         raise KeyError("First argument must be of type 'Transcription/"+
                        "/Corpus/list'.")
