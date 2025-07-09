@@ -44,10 +44,7 @@ class prop: # decorator
             return self
         def wrapper(*args, **kwargs):
             return self.fget(instance, *args, **kwargs)
-        try:
-            return self.fget(instance)
-        except TypeError:
-            return wrapper
+        return wrapper
     def __set__(self, instance, value):
         if not self.fset:
             raise AttributeError("Can't set attribute")
@@ -913,7 +910,7 @@ class Tier(Conteneur):
                 seg.content = cont
     def durToSym(self,sym="_",syms="()"):
         """Turns segment duration into symbol."""
-        pattern = "\d+(|.\d+)"
+        pattern = r"\d+(|.\d+)"
         if syms and len(syms) == 2:
             pattern = syms[0]+pattern+syms[1]
         for seg in self:
