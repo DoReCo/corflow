@@ -1,4 +1,4 @@
-"""23/08/2022
+"""09/07/2025
 Imports and exports 
 
 Note:   'str' (string), 'int' (integer), 'float', 'list', 'dict' (dictionary)
@@ -33,7 +33,27 @@ Note:   'metadata' is a structure "dict<str:dict<str:list<str>>>", or:
  
 import sys,os,re,copy
 
-    #### Support class ####
+    # Support #
+class prop: # decorator
+    """Decorator for methods. Copy-pasted."""
+    def __init__(self, fget):
+        self.fget, self.fset = fget, None
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        def wrapper(*args, **kwargs):
+            return self.fget(instance, *args, **kwargs)
+        try:
+            return self.fget(instance)
+        except TypeError:
+            return wrapper
+    def __set__(self, instance, value):
+        if not self.fset:
+            raise AttributeError("Can't set attribute")
+        self.fset(instance, value)
+    def setter(self, fset):
+        self.fset = fset; return self
 class Conteneur:
     """Parent class to be inherited by all main classes."""
     
@@ -416,6 +436,7 @@ class Conteneur:
                 elem.metadata['omni'].pop(key)
         
         # Structure functions
+    @prop
     def index(self):
         """Returns the object's index."""
         if self.struct and self in self.struct.d_elem:
@@ -429,6 +450,7 @@ class Conteneur:
                 self.struct.d_elem[self][0] = ind
                 return ind
         return -1
+    @prop
     def parent(self,det=False):
         """Returns the object's direct parent.
         If 'det' == True, returns a reference (name,index,pointer)."""
@@ -436,6 +458,7 @@ class Conteneur:
             return self._retDet(self.struct.d_elem[self][1],det)
         else:
             return self._retEmpty(det)
+    @prop
     def parents(self,struct=None,det=False):
         """Returns a list of the 'direct' object's parents.
         If 'det' == True, returns a reference (name,index,pointer)."""
@@ -446,8 +469,10 @@ class Conteneur:
             pobj = pobj.parent()
         l_par.reverse()
         return l_par
+    @prop
     def parDict(self,struct=None,det=False):
         return self._parDict(self.parents(struct=struct,det=det),False)
+    @prop
     def allParents(self,struct=None,det=False):
         """Returns a list of all of the object's parents.
         If 'det' == True, returns a reference (name,index,pointer)."""
@@ -457,6 +482,7 @@ class Conteneur:
             return [l_par[0]]+l_par[0].allChildren(stop=[self.struct],det=det)
         else:
             return []
+    @prop
     def allParDict(self,struct=None,det=False):
         return self._parDict(self.allParents(struct=struct,det=det),False)
     def iterPar(self,det=False):
@@ -467,6 +493,7 @@ class Conteneur:
         """Iterates over all parent objects.
         If 'det' == True, returns a reference (name,index,pointer)."""
         self._iterstruct(self.allParents(det))
+    @prop
     def children(self,struct=None,det=False):
         """Returns a list of the object's direct children.
         'struct' limits the direct children to those of that 'struct'."""
@@ -479,9 +506,11 @@ class Conteneur:
             return l_tmp
         else:
             return []
+    @prop
     def childDict(self,struct=None,det=False):
         """Returns 'children()' as a dictionary."""
         return self._childDict(self.children(struct=struct,det=det),False)
+    @prop
     def allChildren(self,stop=[],det=False):
         """Returns a list of all of the object's children."""
         l_child = []; ll_tmp = []
@@ -501,6 +530,7 @@ class Conteneur:
             if cobj.children():
                 ll_tmp.append((0,cobj.children()))
         return l_child
+    @prop
     def allChildDict(self,stop=[],det=False):
         return self._childDict(self.allChildren(stop=stop,det=det),False)
     def iterChild(self,det=False):
@@ -511,11 +541,13 @@ class Conteneur:
         """Iterates over all children objects.
         If 'det' == True, returns a reference (name,index,pointer)."""
         self._iterstruct(self.allChildren(stop),det)
+    @prop
     def tree(self,det=False):
         """Returns a list of direct parent/children objects.
         If 'det' == True, returns a reference (name,index,pointer)."""
         return (self.parents(det=det)+[self._retDet(self,det=det)]
                 +self.children(det=det))
+    @prop
     def allTree(self,det=False):
         """Returns a list of all parent/children objects.
         If 'det' == True, returns a reference (name,index,pointer)."""
@@ -680,10 +712,11 @@ class Conteneur:
             for child in self.struct.d_elem[self][2:]:
                 child.setParent(None,False,False)
         self.struct.d_elem[self] = self.struct.d_elem[self][:2]
-    #### Main classes ####
-    ######################
 
-    #### SEGMENT ####
+    # Main classes #
+    #--------------#
+
+    # SEGMENT #
 class Segment(Conteneur):
     """Class containing some text between two time codes."""
 
@@ -699,23 +732,26 @@ class Segment(Conteneur):
                        tier,self.metadata.copy())
 
         # navigation
-    def segs(self):
-        return self.elem
+    @prop
     def ti(self):
         """Returns self.tier's pointer."""
         if self.struct:
             return self.struct
         return None
+    @prop
     def tr(self):
         """Returns self.tier.trans's pointer."""
-        if self.ti() and self.ti().struct:
-            return self.ti().struct
-        return None
+        try:
+            return self.struct.struct
+        except:
+            return None
+    @prop
     def co(self):
         """Returns the 'Corpus' instance."""
-        if self.tr() and self.tr().struct:
-            return self.tr().struct
-        return None
+        try:
+            return self.struct.struct.struct
+        except:
+            return None
 
         # set functions
     def setChildTime(self,ch=True,stop=[]):
@@ -751,7 +787,7 @@ class Segment(Conteneur):
         else:
             self.content = self.content.strip()
 
-    #### TIER ####
+    # TIER #
 class Tier(Conteneur):
     """Class containing a list of Segment instances."""
 
@@ -776,19 +812,25 @@ class Tier(Conteneur):
                 seg_par = parent.getTime(seg.start)
                 cp_tier.add(-1,seg,seg_par)
         return cp_tier
-
         # navigation
+    @prop
+    def seg(self):
+        """Returns the segments."""
+        return self.elem
+    @prop
     def tr(self):
         """Returns self.trans's pointer."""
         if self.struct:
             return self.struct
         return None
+    @prop
     def co(self):
         """Returns self.trans.corpus' pointer."""
-        if self.struct and self.tr().corpus:
-            return self.tr().corpus
-        return None
-
+        try:
+            return self.struct.struct
+        except:
+            return None
+    
         # set functions
     def sortByTime(self):
         """Sorts the segments by time code.
@@ -887,7 +929,7 @@ class Tier(Conteneur):
             pseg = parent.getTime(m,parent)
             seg.setParent(pseg)
 
-    #### TRANSCRIPTION ####
+    # TRANSCRIPTION #
 class Transcription(Conteneur):
     """Class containing a list of Tier instances."""
 
@@ -967,6 +1009,14 @@ class Transcription(Conteneur):
             else:
                 yield self._retDet(nseg)
         # navigation
+    @prop
+    def seg(self):
+        return [seg for seg in self.iterSeg()]
+    @prop
+    def ti(self):
+        """Returns the tiers."""
+        return self.elem
+    @prop
     def co(self):
         return self.struct
     
@@ -1101,7 +1151,7 @@ class Transcription(Conteneur):
         for tier in self:
             incr = tier.renameSegs(n,incr)
     
-    #### CORPUS ####
+    # CORPUS #
 class Corpus(Conteneur):
     """Class containing a list of Transcription instances."""
 
@@ -1114,8 +1164,7 @@ class Corpus(Conteneur):
         cop = Corpus(self.name)
         for trans in self.elem:
             ntrans = cop.add(-1,trans.copy(cop))
-
-        # Iter functions
+        # iter functions
     def iterSeg(self,det=False):
         """Iterates over all segments of the Corpus.
         Returns a reference (name,index,pointer) for each segment."""
@@ -1129,8 +1178,13 @@ class Corpus(Conteneur):
         for trans in self:
             for tier in trans:
                 yield self._retDet(tier,det)
+        # navigation
+    @prop
+    def tr(self):
+        """Returns the transcriptions."""
+        return self.elem
 
-    #### Support Functions ####
+    # Support Functions #
 D_ESCAPE = {}
 D_UNESCAPE = {}
 def _getOrd(char):
@@ -1221,4 +1275,4 @@ def fromX(p,d_vals={},**args):
     fromX_func = _getModule(fromX_mod)
     return fromX_func(p,**args) if fromX_func else None
 
-#### End of document
+# End of document
