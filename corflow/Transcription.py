@@ -332,6 +332,14 @@ class Conteneur:
                 self.metadata[div][key][i] = val
         else:
             self.metadata[div][key] = [val]
+    def remMeta(self, key, div="omni", i=0):
+        """Removes an entry from the metadata."""
+        i = 0 if i < 0 else i
+        if div in self.metadata and key in self.metadata[div]:
+            if i == 0:
+                self.metadata[div].pop(key)
+            else:
+                self.metadata[div][key] = self.metadata[div][key][:i]
     def getMetaGroup(self,group="spk",div="omni",sym="_"):
         """Returns a dictionary of a given group (by prefix)."""
         
@@ -783,6 +791,9 @@ class Segment(Conteneur):
             self.content = self.content.strip(strip)
         else:
             self.content = self.content.strip()
+    @prop
+    def mid(self):
+        return (self.start+self.end)/2
 
     # TIER #
 class Tier(Conteneur):

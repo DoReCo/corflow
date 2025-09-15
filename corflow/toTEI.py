@@ -13,37 +13,50 @@ def _chEncoding(trans,encoding):
         return encoding
 
     # Writing functions
+def _metaNote(elem, tab="\t"*6):
+    """Iterator for metadata."""
+    for k,l_v in elem.iterMeta(div="omni",ch_list=True): # omni
+        for v in l_v:
+            yield (tab+"<note type=\""+html.escape(k)+"\">"+
+                   html.escape(v)+"</note>\n")
 def _writeFilDesc(ntrans,tab="\t\t"):
+    """Writes the file description part of the header."""
     ttab = tab+tab+tab
         # Transcription name
     txt = (tab+"<fileDesc>\n"+tab+"\t<titleStmt>\n"+tab+tab+
            "<title>\n"+tab+tab+"\t<desc>"+html.escape(ntrans.name)+
            "</desc>\n"+tab+tab+"</title>\n"+tab+"\t</titleStmt>\n"+
            tab+"\t<publicationStmt>\n"+tab+tab+"<distributor>corflow"
-           "</distributor>\n"+tab+"\t</publicationStmt>\n")
+           "</distributor>\n"+tab+"\t</publicationStmt>\n"+tab+
+           "\t<notesStmt>\n"+tab+tab+"<note type=\"COMMENTS_DESC\">\n"+
+           tab+tab+"\t<note type=\"lastUsedAnnotationId\">0</note>\n"+
+           tab+tab+"</note>\n")
         # Tier metadata
     if ntrans.elem:
         i = 1
-        txt = txt+(tab+"\t<notesStmt>\n"+tab+tab+"<note type=\""
-           "COMMENTS_DESC\">\n"+tab+tab+"\t<note "
-           "type=\"lastUsedAnnotationId\">0</note>\n"+tab+tab+
-           "</note>\n"+tab+tab+"<note type=\"TEMPLATE_DESC\">\n")
+        txt = txt+(tab+tab+"<note type=\"TEMPLATE_DESC\">\n")
         for tier in ntrans: # for each tier
             pn,pi,ptier = tier.parent(det=True)
             id = "TI"+str(i); i+=1
             tier.setMeta('id',id,'tech')
             txt = txt+(tab+tab+"\t<note xml:id=\""+id+"\">\n"+ttab+
-                       "<note type=\"code\">"+html.escape(tier.name)+
+                       "\t<note type=\"code\">"+html.escape(tier.name)+
                        "</note>\n") # name
             if pn:  # parent
-                txt = txt+(ttab+"<note type=\"parent\">"+
+                txt = txt+(ttab+"\t<note type=\"parent\">"+
                            html.escape(pn)+"</note>\n")
-            for k,l_v in tier.iterMeta(div="omni",ch_list=True): # omni
-                for v in l_v:
-                    txt = txt+(ttab+"<note type=\""+html.escape(k)+"\">"+
-                               html.escape(v)+"</note>\n")
+            for note in _metaNote(tier, ttab):
+                txt = txt+note
             txt = txt+(tab+tab+"\t</note>\n")
-        txt = txt+(tab+tab+"</note>\n"+tab+"\t</notesStmt>\n")
+        txt = txt+(tab+tab+"</note>\n")
+        # Transcription metadata
+    mtxt = ""
+    for note in _metaNote(ntrans, tab+tab+"\t"):
+        mtxt = mtxt+note
+    if mtxt:
+        txt = txt+(tab+tab+"<note type=\"METADATA\">\n"+mtxt+
+                   tab+tab+"</note>\n")
+    txt = txt+(tab+"\t</notesStmt>\n")
         # Sound metadata
     if ntrans.meta("audio"):
         txt = txt+(tab+"\t<sourceDesc>\n"+tab+tab+"<recordingStmt>\n"+
@@ -58,6 +71,7 @@ def _writeFilDesc(ntrans,tab="\t\t"):
         txt = txt+(tab+"\t<sourceDesc></sourceDesc>\n")
     return txt+(tab+"</fileDesc>\n")
 def _writeProDesc(ntrans,tab="\t\t"):
+    """Writes the profile description (speakers) of the header."""
     d_spk = ntrans.getSpk(); i = 1
     l_attr = ['age','gender']
         # Setting
@@ -101,9 +115,10 @@ def _writeProDesc(ntrans,tab="\t\t"):
     return txt+(tab+tab+"</listPerson>\n"+tab+"\t</particDesc>\n"+tab+
                 "</profileDesc>\n")
 def _writeEncDesc(tab="\t\t"):
+    """Writes the encoding description (application) of the header."""
     return (tab+"<encodingDesc style=\"0.9.1\">\n"+tab+
             "\t<appInfo>\n"+tab+tab+"<application ident=\"corflow.toTei\" "
-            "version=\"1.0\">\n"+tab+tab+"\t<desc>Python package 'corflow'."
+            "version=\"3.4\">\n"+tab+tab+"\t<desc>Python package 'corflow'."
             "</desc>\n"+tab+tab+"</application>\n"+tab+"\t</appInfo>\n"+tab+
             "</encodingDesc>\n")
 def _writeHeader(f,ntrans,encoding):
