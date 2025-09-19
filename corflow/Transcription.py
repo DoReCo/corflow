@@ -791,7 +791,7 @@ class Segment(Conteneur):
             self.content = self.content.strip(strip)
         else:
             self.content = self.content.strip()
-    @prop
+    @property
     def mid(self):
         return (self.start+self.end)/2
 
