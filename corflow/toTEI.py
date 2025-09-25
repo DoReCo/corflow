@@ -127,7 +127,7 @@ def _writeHeader(f, ntrans, encoding):
     txt = ("<?xml version=\"1.0\" encoding=\"{}\"?>\n"      # static
            "<TEI xmlns=\"http://www.tei-c.org/ns/1.0\">\n"
            "\t<teiHeader>\n"
-           .format(encoding.replace("_", "-"))
+           .format(encoding.replace("_", "-")))
     tab = "\t\t"
     txt = txt+_writeFilDesc(ntrans,tab)     # fileDesc (name,tiers,audio)
     txt = txt+_writeProDesc(ntrans,tab)     # profileDesc (speakers)
