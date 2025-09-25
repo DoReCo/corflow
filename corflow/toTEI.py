@@ -8,7 +8,7 @@ def _chEncoding(trans,encoding):
         # No user-defined encoding
     if not encoding:
             # Check metadata for one
-        return trans.meta('encoding','tech',empty="utf_8")
+        return trans.meta('encoding', 'tech', empty="utf_8")
     else:
         return encoding
 
@@ -121,13 +121,13 @@ def _writeEncDesc(tab="\t\t"):
             "version=\"3.4\">\n"+tab+tab+"\t<desc>Python package 'corflow'."
             "</desc>\n"+tab+tab+"</application>\n"+tab+"\t</appInfo>\n"+tab+
             "</encodingDesc>\n")
-def _writeHeader(f,ntrans,encoding):
+def _writeHeader(f, ntrans, encoding):
     """Writes the file header."""
     
     txt = ("<?xml version=\"1.0\" encoding=\"{}\"?>\n"      # static
            "<TEI xmlns=\"http://www.tei-c.org/ns/1.0\">\n"
            "\t<teiHeader>\n"
-           .format(encoding))
+           .format(encoding.replace("_", "-"))
     tab = "\t\t"
     txt = txt+_writeFilDesc(ntrans,tab)     # fileDesc (name,tiers,audio)
     txt = txt+_writeProDesc(ntrans,tab)     # profileDesc (speakers)

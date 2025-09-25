@@ -33,24 +33,6 @@ Note:   'metadata' is a structure "dict<str:dict<str:list<str>>>", or:
  
 import sys,os,re,copy
 
-    # Support #
-class prop: # decorator
-    """Decorator for methods. Copy-pasted."""
-    def __init__(self, fget):
-        self.fget, self.fset = fget, None
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-        def wrapper(*args, **kwargs):
-            return self.fget(instance, *args, **kwargs)
-        return wrapper
-    def __set__(self, instance, value):
-        if not self.fset:
-            raise AttributeError("Can't set attribute")
-        self.fset(instance, value)
-    def setter(self, fset):
-        self.fset = fset; return self
 class Conteneur:
     """Parent class to be inherited by all main classes."""
     
@@ -441,7 +423,6 @@ class Conteneur:
                 elem.metadata['omni'].pop(key)
         
         # Structure functions
-    @prop
     def index(self):
         """Returns the object's index."""
         if self.struct and self in self.struct.d_elem:
@@ -455,7 +436,6 @@ class Conteneur:
                 self.struct.d_elem[self][0] = ind
                 return ind
         return -1
-    @prop
     def parent(self,det=False):
         """Returns the object's direct parent.
         If 'det' == True, returns a reference (name,index,pointer)."""
@@ -463,7 +443,6 @@ class Conteneur:
             return self._retDet(self.struct.d_elem[self][1],det)
         else:
             return self._retEmpty(det)
-    @prop
     def parents(self,struct=None,det=False):
         """Returns a list of the 'direct' object's parents.
         If 'det' == True, returns a reference (name,index,pointer)."""
@@ -474,10 +453,8 @@ class Conteneur:
             pobj = pobj.parent()
         l_par.reverse()
         return l_par
-    @prop
     def parDict(self,struct=None,det=False):
         return self._parDict(self.parents(struct=struct,det=det),False)
-    @prop
     def allParents(self,struct=None,det=False):
         """Returns a list of all of the object's parents.
         If 'det' == True, returns a reference (name,index,pointer)."""
@@ -487,7 +464,6 @@ class Conteneur:
             return [l_par[0]]+l_par[0].allChildren(stop=[self.struct],det=det)
         else:
             return []
-    @prop
     def allParDict(self,struct=None,det=False):
         return self._parDict(self.allParents(struct=struct,det=det),False)
     def iterPar(self,det=False):
@@ -498,7 +474,6 @@ class Conteneur:
         """Iterates over all parent objects.
         If 'det' == True, returns a reference (name,index,pointer)."""
         self._iterstruct(self.allParents(det))
-    @prop
     def children(self,struct=None,det=False):
         """Returns a list of the object's direct children.
         'struct' limits the direct children to those of that 'struct'."""
@@ -511,11 +486,9 @@ class Conteneur:
             return l_tmp
         else:
             return []
-    @prop
     def childDict(self,struct=None,det=False):
         """Returns 'children()' as a dictionary."""
         return self._childDict(self.children(struct=struct,det=det),False)
-    @prop
     def allChildren(self,stop=[],det=False):
         """Returns a list of all of the object's children."""
         l_child = []; ll_tmp = []
@@ -535,7 +508,6 @@ class Conteneur:
             if cobj.children():
                 ll_tmp.append((0,cobj.children()))
         return l_child
-    @prop
     def allChildDict(self,stop=[],det=False):
         return self._childDict(self.allChildren(stop=stop,det=det),False)
     def iterChild(self,det=False):
@@ -546,13 +518,11 @@ class Conteneur:
         """Iterates over all children objects.
         If 'det' == True, returns a reference (name,index,pointer)."""
         self._iterstruct(self.allChildren(stop),det)
-    @prop
     def tree(self,det=False):
         """Returns a list of direct parent/children objects.
         If 'det' == True, returns a reference (name,index,pointer)."""
         return (self.parents(det=det)+[self._retDet(self,det=det)]
                 +self.children(det=det))
-    @prop
     def allTree(self,det=False):
         """Returns a list of all parent/children objects.
         If 'det' == True, returns a reference (name,index,pointer)."""
@@ -737,20 +707,20 @@ class Segment(Conteneur):
                        tier,self.metadata.copy())
 
         # navigation
-    @prop
+    @property
     def ti(self):
         """Returns self.tier's pointer."""
         if self.struct:
             return self.struct
         return None
-    @prop
+    @property
     def tr(self):
         """Returns self.tier.trans's pointer."""
         try:
             return self.struct.struct
         except:
             return None
-    @prop
+    @property
     def co(self):
         """Returns the 'Corpus' instance."""
         try:
@@ -821,17 +791,17 @@ class Tier(Conteneur):
                 cp_tier.add(-1,seg,seg_par)
         return cp_tier
         # navigation
-    @prop
+    @property
     def seg(self):
         """Returns the segments."""
         return self.elem
-    @prop
+    @property
     def tr(self):
         """Returns self.trans's pointer."""
         if self.struct:
             return self.struct
         return None
-    @prop
+    @property
     def co(self):
         """Returns self.trans.corpus' pointer."""
         try:
@@ -1017,14 +987,14 @@ class Transcription(Conteneur):
             else:
                 yield self._retDet(nseg)
         # navigation
-    @prop
+    @property
     def seg(self):
         return [seg for seg in self.iterSeg()]
-    @prop
+    @property
     def ti(self):
         """Returns the tiers."""
         return self.elem
-    @prop
+    @property
     def co(self):
         return self.struct
     
@@ -1187,7 +1157,7 @@ class Corpus(Conteneur):
             for tier in trans:
                 yield self._retDet(tier,det)
         # navigation
-    @prop
+    @property
     def tr(self):
         """Returns the transcriptions."""
         return self.elem
